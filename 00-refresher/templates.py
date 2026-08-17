@@ -17,9 +17,15 @@ from typing import Dict, List, Optional, Set
 # ---------------------------------------------------------------------------
 # Hash map / set
 # ---------------------------------------------------------------------------
+# O(1) avg lookup / insert / delete. Use for frequency, grouping, membership
+# ("have I seen this?"), and complement lookups. A set is a map with no values.
 
 def frequency_map(items: List[int]) -> Dict[int, int]:
-    """Count occurrences. Also: Counter(items)."""
+    """Count how many times each value appears.
+
+    Classic grouping pattern: key = the item, value = its count.
+    Also: ``Counter(items)`` or ``defaultdict(int)``.
+    """
     counts: Dict[int, int] = {}
     for x in items:
         counts[x] = counts.get(x, 0) + 1
@@ -27,7 +33,11 @@ def frequency_map(items: List[int]) -> Dict[int, int]:
 
 
 def complement_lookup(nums: List[int], target: int) -> Optional[tuple[int, int]]:
-    """For each x, look up target - x in a seen map of value -> index."""
+    """Return indices of two numbers that add up to ``target``, or None.
+
+    For each ``x``, look up ``target - x`` in a seen map of value -> index
+    (Two Sum). Record ``x`` after the lookup so a number is not paired with itself.
+    """
     seen: Dict[int, int] = {}
     for i, x in enumerate(nums):
         need = target - x
@@ -40,9 +50,15 @@ def complement_lookup(nums: List[int], target: int) -> Optional[tuple[int, int]]
 # ---------------------------------------------------------------------------
 # Two pointers
 # ---------------------------------------------------------------------------
+# Two indices walk an array in O(n). Opposite ends for sorted pairs / palindromes;
+# same direction (slow/fast) for in-place filter, remove-duplicates, or a midpoint.
 
 def two_pointers_opposite(arr: List[int]) -> None:
-    """Sorted array: move the pointer that can improve the pair."""
+    """Walk a sorted array from both ends toward a valid pair.
+
+    Move the pointer that can improve the current pair: too small → ``l += 1``,
+    too large → ``r -= 1``. Record on a hit, then advance one or both.
+    """
     l, r = 0, len(arr) - 1
     while l < r:
         # if too small: l += 1
@@ -52,7 +68,11 @@ def two_pointers_opposite(arr: List[int]) -> None:
 
 
 def two_pointers_same_direction(arr: List[int]) -> None:
-    """Slow/fast or read/write: slow trails, fast scans."""
+    """Slow trails, fast scans: in-place keep / overwrite.
+
+    Fast reads every element; slow writes only the ones that should stay
+    (remove duplicates, partition, compact). After the loop, ``slow`` is the new length.
+    """
     slow = 0
     for fast in range(len(arr)):
         # if arr[fast] should be kept: arr[slow] = arr[fast]; slow += 1
@@ -63,9 +83,15 @@ def two_pointers_same_direction(arr: List[int]) -> None:
 # ---------------------------------------------------------------------------
 # Stack
 # ---------------------------------------------------------------------------
+# LIFO. Use for matching (brackets, nested structure), undo, and "next greater /
+# previous smaller" via a monotonic stack of indices.
 
 def stack_matching(s: str) -> bool:
-    """Push openers; pop on closers. Empty stack at end => valid."""
+    """Return whether ``s`` has valid matching brackets.
+
+    Push openers. On a closer, pop if it matches the top; otherwise invalid.
+    Empty stack at the end means every opener was closed.
+    """
     pairs = {")": "(", "]": "[", "}": "{"}
     st: List[str] = []
     for ch in s:
@@ -79,7 +105,12 @@ def stack_matching(s: str) -> bool:
 
 
 def monotonic_stack(arr: List[int]) -> List[int]:
-    """Next greater element to the right. Increasing stack of indices."""
+    """Next greater element to the right for each index; ``-1`` if none.
+
+    Keep an increasing stack of indices. When a new value is larger than the
+    top, that top's "next greater" is the new value — pop until the stack is
+    still increasing, then push.
+    """
     n = len(arr)
     ans = [-1] * n
     st: List[int] = []
@@ -93,9 +124,15 @@ def monotonic_stack(arr: List[int]) -> List[int]:
 # ---------------------------------------------------------------------------
 # Queue / deque
 # ---------------------------------------------------------------------------
+# FIFO. BFS, level-order, and sliding-window queues. Use ``deque`` so both
+# ends are O(1) — never ``list.pop(0)``.
 
 def bfs_queue(start: int, adj: Dict[int, List[int]]) -> List[int]:
-    """Level-order walk. Use deque — never list.pop(0)."""
+    """Level-order walk from ``start``; return visit order.
+
+    Mark a node seen when it is *enqueued*, not when it is popped, so it is
+    not added twice. ``popleft`` is O(1); ``list.pop(0)`` is O(n).
+    """
     q: deque[int] = deque([start])
     seen: Set[int] = {start}
     order: List[int] = []
@@ -112,14 +149,23 @@ def bfs_queue(start: int, adj: Dict[int, List[int]]) -> List[int]:
 # ---------------------------------------------------------------------------
 # Linked list
 # ---------------------------------------------------------------------------
+# Sequential nodes, O(1) extra space. Reverse by rewiring pointers; dummy head
+# for insert/delete at the real head; slow/fast for midpoint or cycle.
 
 class ListNode:
+    """Singly linked list node: ``val`` and ``next``."""
+
     def __init__(self, val: int = 0, next: Optional["ListNode"] = None) -> None:
         self.val = val
         self.next = next
 
 
 def reverse_list(head: Optional[ListNode]) -> Optional[ListNode]:
+    """Reverse a list in place; return the new head (old tail).
+
+    Three pointers: ``prev``, ``curr``, ``nxt``. Save ``nxt``, point ``curr``
+    backward at ``prev``, then slide all three forward.
+    """
     prev, curr = None, head
     while curr:
         nxt = curr.next
@@ -130,14 +176,22 @@ def reverse_list(head: Optional[ListNode]) -> Optional[ListNode]:
 
 
 def dummy_head_pattern(head: Optional[ListNode]) -> Optional[ListNode]:
-    """Dummy simplifies insert/delete at the real head."""
+    """Return the real head after operating from a dummy node.
+
+    A dummy in front of ``head`` makes insert/delete at the first real node
+    the same as anywhere else — no special-case for ``head`` itself.
+    """
     dummy = ListNode(0, head)
     _ = dummy.next  # operate from dummy
     return dummy.next
 
 
 def slow_fast(head: Optional[ListNode]) -> Optional[ListNode]:
-    """Midpoint / cycle detection. Fast moves 2, slow moves 1."""
+    """Return the midpoint (or meeting node if used for cycle detection).
+
+    Fast moves two steps, slow moves one. When fast hits the end, slow is at
+    the middle. If they ever meet before the end, there is a cycle.
+    """
     slow = fast = head
     while fast and fast.next:
         assert slow is not None
@@ -149,6 +203,11 @@ def slow_fast(head: Optional[ListNode]) -> Optional[ListNode]:
 def merge_two_sorted(
     a: Optional[ListNode], b: Optional[ListNode]
 ) -> Optional[ListNode]:
+    """Merge two sorted lists into one sorted list; return the new head.
+
+    Dummy + tail: always append the smaller of ``a`` / ``b``, then attach
+    whatever remains. Dummy avoids a special case for the first node.
+    """
     dummy = ListNode()
     tail = dummy
     while a and b:
@@ -164,8 +223,12 @@ def merge_two_sorted(
 # ---------------------------------------------------------------------------
 # Binary tree DFS / BFS
 # ---------------------------------------------------------------------------
+# Hierarchy: paths, LCA, BST property. DFS (recurse or stack) for depth / paths;
+# BFS (queue) for level order and "closest to root".
 
 class TreeNode:
+    """Binary tree node: ``val``, ``left``, ``right``."""
+
     def __init__(
         self,
         val: int = 0,
@@ -178,6 +241,11 @@ class TreeNode:
 
 
 def dfs_recursive(root: Optional[TreeNode]) -> None:
+    """Walk the tree with recursion (pre/in/post: move the visit line).
+
+    Base case: ``None``. This skeleton is post-order (children then node);
+    visit before both recursions for pre-order, between them for in-order.
+    """
     if not root:
         return
     dfs_recursive(root.left)
@@ -185,6 +253,11 @@ def dfs_recursive(root: Optional[TreeNode]) -> None:
 
 
 def dfs_iterative(root: Optional[TreeNode]) -> List[int]:
+    """Pre-order walk with an explicit stack; return visit order.
+
+    Pop, visit, then push right *then* left so left is processed first.
+    Same idea as recursion, without the call stack.
+    """
     if not root:
         return []
     st: List[TreeNode] = [root]
@@ -200,6 +273,11 @@ def dfs_iterative(root: Optional[TreeNode]) -> List[int]:
 
 
 def bfs_levels(root: Optional[TreeNode]) -> List[List[int]]:
+    """Level-order traversal: one inner list per depth.
+
+    Snapshot ``len(q)`` as the current level's size, then drain that many
+    nodes and enqueue their children for the next level.
+    """
     if not root:
         return []
     q: deque[TreeNode] = deque([root])
@@ -220,8 +298,14 @@ def bfs_levels(root: Optional[TreeNode]) -> List[List[int]]:
 # ---------------------------------------------------------------------------
 # Graph: adj list, DFS, BFS, Kahn topo
 # ---------------------------------------------------------------------------
+# Nodes + edges. BFS for unweighted shortest path / components; DFS for
+# reachability and cycles; Kahn / 3-color DFS when ordering has prerequisites.
 
 def build_adj(n: int, edges: List[List[int]], directed: bool = False) -> List[List[int]]:
+    """Build an adjacency list of size ``n`` from ``[u, v]`` edge pairs.
+
+    Undirected edges are stored both ways. Nodes are assumed ``0 .. n-1``.
+    """
     adj: List[List[int]] = [[] for _ in range(n)]
     for u, v in edges:
         adj[u].append(v)
@@ -231,6 +315,11 @@ def build_adj(n: int, edges: List[List[int]], directed: bool = False) -> List[Li
 
 
 def graph_dfs(n: int, adj: List[List[int]]) -> List[int]:
+    """DFS every component; return visit order.
+
+    Outer loop covers disconnected graphs. Mark visited on entry so a node
+    is not re-entered through another edge.
+    """
     seen = [False] * n
     order: List[int] = []
 
@@ -248,7 +337,11 @@ def graph_dfs(n: int, adj: List[List[int]]) -> List[int]:
 
 
 def has_cycle_directed(n: int, adj: List[List[int]]) -> bool:
-    """0 = unvisited, 1 = visiting (on stack), 2 = done."""
+    """Return True if the directed graph has a cycle (3-color DFS).
+
+    ``0`` unvisited, ``1`` visiting (on the recursion stack), ``2`` done.
+    Seeing a neighbor still in state 1 means a back edge — a cycle.
+    """
     state = [0] * n
 
     def dfs(u: int) -> bool:
@@ -265,6 +358,12 @@ def has_cycle_directed(n: int, adj: List[List[int]]) -> bool:
 
 
 def kahn_topo(n: int, adj: List[List[int]]) -> Optional[List[int]]:
+    """Topological order via BFS on indegree; ``None`` if there is a cycle.
+
+    Start with all indegree-0 nodes. Each processed node decrements its
+    neighbors; a neighbor with indegree 0 is ready. If fewer than ``n``
+    nodes are emitted, a cycle remains.
+    """
     indeg = [0] * n
     for u in range(n):
         for v in adj[u]:
@@ -284,9 +383,15 @@ def kahn_topo(n: int, adj: List[List[int]]) -> Optional[List[int]]:
 # ---------------------------------------------------------------------------
 # Binary search
 # ---------------------------------------------------------------------------
+# Halve a sorted range in O(log n). Exact match on a sorted array, or search
+# the answer: first / last index (or value) where a monotonic predicate is True.
 
 def binary_search_exact(arr: List[int], target: int) -> int:
-    """Return index of target or -1. arr must be sorted."""
+    """Return the index of ``target`` in a sorted array, or ``-1``.
+
+    Inclusive ``[l, r]``. Mid too small → search right (``l = mid + 1``);
+    mid too large → search left (``r = mid - 1``).
+    """
     l, r = 0, len(arr) - 1
     while l <= r:
         mid = (l + r) // 2
@@ -300,8 +405,10 @@ def binary_search_exact(arr: List[int], target: int) -> int:
 
 
 def binary_search_first_true(lo: int, hi: int, predicate) -> int:
-    """Smallest x in [lo, hi] where predicate(x) is True. hi is inclusive.
-    Caller must guarantee a True exists, or check after.
+    """Smallest ``x`` in ``[lo, hi]`` where ``predicate(x)`` is True.
+
+    ``hi`` is inclusive. The predicate must be monotonic (False then True).
+    Caller must guarantee a True exists, or check ``predicate(lo)`` after.
     """
     while lo < hi:
         mid = (lo + hi) // 2
@@ -315,9 +422,15 @@ def binary_search_first_true(lo: int, hi: int, predicate) -> int:
 # ---------------------------------------------------------------------------
 # Sliding window
 # ---------------------------------------------------------------------------
+# Subarray / substring of a stream. Expand the right end; shrink the left while
+# the window is invalid. Typical O(n) because each index enters and leaves once.
 
 def variable_window(s: str) -> int:
-    """Grow r; shrink l while the window is invalid. Track counts."""
+    """Longest valid window length (skeleton — replace the invalid check).
+
+    Grow ``r`` each step, update counts, then shrink ``l`` while the window
+    breaks the constraint. ``r - l + 1`` is the current length.
+    """
     counts: Dict[str, int] = defaultdict(int)
     l = 0
     best = 0
@@ -333,9 +446,15 @@ def variable_window(s: str) -> int:
 # ---------------------------------------------------------------------------
 # Heap
 # ---------------------------------------------------------------------------
+# Priority queue: kth / top-k / running median. ``heapq`` is a min-heap;
+# negate values for a max-heap. Push/pop are O(log n); peek min is O(1).
 
 def top_k_min_heap(nums: List[int], k: int) -> List[int]:
-    """k largest: keep a min-heap of size k."""
+    """Return the ``k`` largest values (unordered) using a min-heap of size ``k``.
+
+    Anything smaller than the current heap min cannot be in the top k, so it
+    is ignored. ``heapreplace`` pops the min and pushes the new value in one step.
+    """
     heap: List[int] = []
     for x in nums:
         if len(heap) < k:
@@ -346,19 +465,31 @@ def top_k_min_heap(nums: List[int], k: int) -> List[int]:
 
 
 def max_heap_push(heap: List[int], x: int) -> None:
-    """heapq is a min-heap. Negate for max-heap."""
+    """Push ``x`` onto a max-heap stored as negated values.
+
+    ``heapq`` only implements a min-heap, so store ``-x``. Pair with
+    ``max_heap_pop``.
+    """
     heapq.heappush(heap, -x)
 
 
 def max_heap_pop(heap: List[int]) -> int:
+    """Pop and return the true max from a negated min-heap."""
     return -heapq.heappop(heap)
 
 
 # ---------------------------------------------------------------------------
 # Backtracking
 # ---------------------------------------------------------------------------
+# Explore all combinations / permutations / paths. Choose, recurse, undo
+# (pop / unmark). Prune as soon as a partial path cannot succeed.
 
 def backtrack_subsets(nums: List[int]) -> List[List[int]]:
+    """All subsets of ``nums`` (include / skip at each index).
+
+    At index ``i``: append ``nums[i]`` and recurse, then pop and recurse
+    without it. Copy ``path`` when you reach the end — it is reused.
+    """
     ans: List[List[int]] = []
     path: List[int] = []
 
@@ -376,7 +507,11 @@ def backtrack_subsets(nums: List[int]) -> List[List[int]]:
 
 
 def backtrack_grid(grid: List[List[str]], r: int, c: int) -> None:
-    """In-place mark visited, recurse 4-dir, unmark (if the cell can be reused)."""
+    """DFS a grid in 4 directions, marking the cell visited then unmarking.
+
+    In-place ``"#"`` (or similar) so the same cell is not reused on this path.
+    Restore after the four recursive calls if the cell can be used on another path.
+    """
     rows, cols = len(grid), len(grid[0])
     if r < 0 or c < 0 or r >= rows or c >= cols:
         return
@@ -389,9 +524,15 @@ def backtrack_grid(grid: List[List[str]], r: int, c: int) -> None:
 # ---------------------------------------------------------------------------
 # 1-D DP
 # ---------------------------------------------------------------------------
+# Min/max over overlapping subproblems. Define ``dp[i]``, set base cases, fill
+# in dependency order. If only the last 1–2 states are needed, roll variables.
 
 def dp_one_array(n: int) -> int:
-    """Define dp[i], set base cases, iterate in dependency order."""
+    """Fill ``dp[0..n]`` from base cases using a recurrence (Fibonacci skeleton).
+
+    ``dp[i]`` = answer for size ``i``. Iterate ``i`` so that ``i-1``, ``i-2``,
+    … are already computed. Replace the recurrence with the problem's.
+    """
     if n <= 1:
         return n
     dp = [0] * (n + 1)
@@ -402,7 +543,11 @@ def dp_one_array(n: int) -> int:
 
 
 def dp_rolling(n: int) -> int:
-    """When dp[i] only needs the last 1–2 states, drop the array."""
+    """Same recurrence as ``dp_one_array``, using only the last two states.
+
+    When ``dp[i]`` depends only on ``dp[i-1]`` and ``dp[i-2]``, two variables
+    replace the array: O(1) extra space.
+    """
     if n <= 1:
         return n
     a, b = 0, 1
@@ -414,18 +559,25 @@ def dp_rolling(n: int) -> int:
 # ---------------------------------------------------------------------------
 # Trie
 # ---------------------------------------------------------------------------
+# Prefix tree: one edge per character. Insert / search / prefix in O(L) where
+# L is the word length. Use for dictionaries, autocomplete, and wildcard search.
 
 class TrieNode:
+    """One character in the trie: child map and an end-of-word flag."""
+
     def __init__(self) -> None:
         self.children: Dict[str, TrieNode] = {}
         self.is_word = False
 
 
 class Trie:
+    """Rooted prefix tree. Keys are strings; nodes are shared prefixes."""
+
     def __init__(self) -> None:
         self.root = TrieNode()
 
     def insert(self, word: str) -> None:
+        """Add ``word``. Create missing child nodes; mark the last as a word."""
         node = self.root
         for ch in word:
             if ch not in node.children:
@@ -434,6 +586,7 @@ class Trie:
         node.is_word = True
 
     def search(self, word: str) -> bool:
+        """Return True iff ``word`` was inserted (not merely a prefix)."""
         node = self.root
         for ch in word:
             if ch not in node.children:
@@ -442,6 +595,7 @@ class Trie:
         return node.is_word
 
     def starts_with(self, prefix: str) -> bool:
+        """Return True iff some inserted word starts with ``prefix``."""
         node = self.root
         for ch in prefix:
             if ch not in node.children:
