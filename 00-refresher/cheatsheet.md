@@ -1,27 +1,29 @@
 # Data structure cheatsheet (Python)
 
-Hour 0: re-type [`templates.py`](templates.py) from memory. Then start Blind 75.
+Hour 0: re-type the **13 concepts** in [`templates.py`](templates.py) from memory. Then start Blind 75.
 
 ## When to reach for what
 
-| If you see… | Reach for | Typical complexity |
-| --- | --- | --- |
-| Lookup, frequency, grouping, "have I seen this" | `dict` / `set` / `Counter` | O(1) avg lookup, O(n) space |
-| Sorted pair, palindrome, opposite ends | Two pointers | O(n) after sort |
-| Matching brackets, next greater, undo | Stack (`list`) | O(n) |
-| BFS, sliding window queue, level order | `collections.deque` | O(1) append/popleft |
-| Sequential nodes, reverse, cycle, merge | Linked list + dummy / slow-fast | O(n) time, O(1) extra |
-| Hierarchy, LCA, path, BST property | Tree DFS or BFS | O(n) |
-| Prefix dictionary / wildcard search | Trie | O(L) per word |
-| kth / top-k / running median | `heapq` | O(log k) per push |
-| "All combinations / permutations / paths" | Backtracking | Exponential; prune early |
-| Overlapping intervals | Sort by start, then merge | O(n log n) |
-| Local choice that never needs undo | Greedy | Often O(n) after sort |
-| Shortest unweighted path, components | Graph BFS / DFS | O(V + E) |
-| Ordering with prerequisites | Kahn topo / 3-color DFS | O(V + E) |
-| Min/max over subproblems | 1-D DP | O(n) or O(n * W) |
-| Grid / two sequences | 2-D DP | O(m * n) |
-| Sorted array, min feasible value | Binary search on index or answer | O(log n) |
+Numbers match the banners in `templates.py`. Intervals, greedy, and 2-D DP are extra — no skeleton in that file.
+
+| # | If you see… | Reach for | Typical complexity |
+| --- | --- | --- | --- |
+| 1 | Lookup, frequency, grouping, "have I seen this" | `dict` / `set` / `Counter` | O(1) avg lookup, O(n) space |
+| 2 | Sorted pair, palindrome, opposite ends | Two pointers | O(n) after sort |
+| 3 | Matching brackets, next greater, undo | Stack (`list`) | O(n) |
+| 4 | BFS, level order, sliding-window queue | `collections.deque` | O(1) append/popleft |
+| 5 | Sequential nodes, reverse, cycle, merge | Linked list + dummy / slow-fast | O(n) time, O(1) extra |
+| 6 | Hierarchy, LCA, path, BST property | Tree DFS or BFS | O(n) |
+| 7 | Shortest unweighted path, components, prerequisites | Graph BFS / DFS, Kahn topo | O(V + E) |
+| 8 | Sorted array, min feasible value | Binary search on index or answer | O(log n) |
+| 9 | Subarray / substring with a constraint | Sliding window | O(n) |
+| 10 | kth / top-k / running median | `heapq` | O(log k) per push |
+| 11 | "All combinations / permutations / paths" | Backtracking | Exponential; prune early |
+| 12 | Min/max over subproblems | 1-D DP | O(n) or O(n * W) |
+| 13 | Prefix dictionary / wildcard search | Trie | O(L) per word |
+| — | Overlapping intervals | Sort by start, then merge | O(n log n) |
+| — | Local choice that never needs undo | Greedy | Often O(n) after sort |
+| — | Grid / two sequences | 2-D DP | O(m * n) |
 
 ## Python interview traps
 
